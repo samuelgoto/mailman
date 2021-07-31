@@ -31,6 +31,9 @@ server.on("error", (e) => {
   console.log(e);
 });
 
-server.listen(25);
 
-console.log("Listening");
+const port = process.env.PORT || 2525;
+
+server.listen(port);
+
+console.log(`Listening to port ${port}.`);
