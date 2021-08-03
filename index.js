@@ -1,3 +1,23 @@
+const express = require('express')
+const app = express()
+const port = process.env.PORT || 2525;
+// const port = 3000
+// const port = 25;
+
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
+
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`)
+})
+
+console.log(`Listening to port ${port}.`);
+
+/**
+return;
+
+
 const {SMTPServer} = require("smtp-server");
 const {simpleParser} = require("mailparser");
 
@@ -37,3 +57,4 @@ const port = process.env.PORT || 2525;
 server.listen(port);
 
 console.log(`Listening to port ${port}.`);
+**/
