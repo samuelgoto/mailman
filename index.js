@@ -1,60 +1,60 @@
-const express = require('express')
-const app = express()
-const port = process.env.PORT || 2525;
-// const port = 3000
-// const port = 25;
-
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
-
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
-})
-
-console.log(`Listening to port ${port}.`);
-
-/**
-return;
-
-
 const {SMTPServer} = require("smtp-server");
 const {simpleParser} = require("mailparser");
+const {send} = require("./client");
+const express = require("express");
 
-const server = new SMTPServer({
+const queue = [];
+
+function log(message) {
+  queue.push(message);
+}
+
+const smtp = new SMTPServer({
   onData(stream, session, callback) {
     stream.on("end", callback);
-    simpleParser(stream, {}, (err, parsed) => {
+    simpleParser(stream, {}, async (err, parsed) => {
       if (err) {
         reject(err);
       }
-
       // console.log("Received!");
-      const {from, to, subject, text} = email;
+      const {from, to, subject, text} = parsed;
       const {value: [{address: sender}]} = from;
       const {value: [{address: receiver}]} = to;
+      log(`Got mail!`);
+      log(`From: ${sender}`);
+      log(`To: ${receiver}`);
+      log(`Sub: ${subject}`);
+      log(`${text}`);
 
-      console.log(`From: ${sender}`);
-      console.log(`To: ${receiver}`);
-      console.log(`Sub: ${subject}`);
-      console.log(`${text}`);
+      const email = {
+        from: "me@code.sgo.to",
+        to: sender,
+        subject: "pong",
+        text: "pong"
+      };
 
-      //server.close(() => {
-      //  resolve(parsed);
-      //});
+      const reply = await send(email);
+      
+      log(`Replying`);
+      log(reply);
     })
   },
   disabledCommands: ['AUTH']
 });
 
-server.on("error", (e) => {
-  console.log(e);
+smtp.on("error", (e) => {
+  log(e);
 });
 
+smtp.listen(25);
 
-const port = process.env.PORT || 2525;
+const http = express();
 
-server.listen(port);
+http.get("/", (req, res) => {
+  res.send("log: " + queue.join("\n") + ". done.");
+})
 
-console.log(`Listening to port ${port}.`);
-**/
+http.listen(80, () => {
+})
+
+console.log(`Listening to smtp and http.`);

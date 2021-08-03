@@ -1,17 +1,7 @@
 const nodemailer = require("nodemailer");
 const dns = require("dns");
 
-async function main() {
-
-  const email = {
-    from: "me@code.sgo.to",
-    to: "samuelgoto@gmail.com",
-    subject: "any chance this will work?",
-    text: `
-hello world! how is it going?
-`
-  };
-
+async function send(email) {
   const domain = email.to.split("@")[1];
 
   const host = await new Promise((resolve, reject) => {
@@ -39,9 +29,11 @@ hello world! how is it going?
     });
   });
 
-  console.log(result);
+  return result;
 }
 
-main();
+module.exports = {
+  send
+};
 
 
