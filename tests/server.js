@@ -3,7 +3,7 @@ const {simpleParser} = require("mailparser");
 const nodemailer = require("nodemailer");
 
 describe("server", () => {
-  it("sends and receives", async () => {
+  it.skip("sends and receives", async () => {
 
     const received = new Promise((resolve, reject) => {
       const server = new SMTPServer({
