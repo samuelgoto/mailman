@@ -10,13 +10,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@stablelib/ed25519": "^1.0.2",
+    "@stablelib/sha512": "^1.0.1",
     "bittorrent-dht": "^10.0.1",
     "express": "^4.17.1",
+    "js-sha3": "^0.8.0",
     "magnet-uri": "^6.2.0",
     "mailparser": "^3.2.0",
     "node-forge": "^0.10.0",
     "nodemailer": "^6.6.3",
     "nodemailer-smime": "^1.1.0",
+    "p2pnap": "git+https://github.com/z-ninja/p2pnap.git",
+    "rfc-3548-b32": "0.0.2",
     "smtp-server": "^3.9.0"
   },
   "devDependencies": {
