@@ -133,7 +133,7 @@ async function read(message, from, to) {
 }
 
 describe("OpenPGP", () => {
-  it.only("Send and receive", async () => {
+  it("Send and receive", async () => {
     const alice = await keyPair("foo");
     const bob = await keyPair("bar");
     
