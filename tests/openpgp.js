@@ -80,7 +80,7 @@ async function keyPair(password) {
   };
 }
 
-async function descriptor(privateKey) {
+async function descriptor({privateKey}) {
   const metadata = {
     hello: "world"
   };
@@ -95,58 +95,64 @@ async function descriptor(privateKey) {
   });
 }
 
+async function compose(from, to, message) {
+  const {publicKey} = from;
+  const {privateKey} = to;
+  return await openpgp.encrypt({
+    message: await openpgp.createMessage({text: message}),
+    encryptionKeys: publicKey,
+    signingKeys: privateKey
+  });
+}
+
+async function read(message, from, to) {
+  const {publicKey} = from;
+  const {privateKey} = to;
+  const received = await openpgp.readMessage({
+    armoredMessage: message
+  });
+  
+  const {data: decrypted, signatures} = await openpgp.decrypt({
+    message: received,
+    verificationKeys: publicKey,
+    decryptionKeys: privateKey
+  });
+
+  if (signatures.length == 0) {
+    return decrypted;
+  }
+
+  // check signature validity (signed messages only)
+  try {
+    await signatures[0].verified; // throws on invalid signature
+  } catch (e) {
+    throw new Error('Signature could not be verified: ' + e.message);
+  }
+  
+  return decrypted;
+}
+
 describe("OpenPGP", () => {
-  it("Send and receive", async () => {
-    const password = "foobar";
+  it.only("Send and receive", async () => {
+    const alice = await keyPair("foo");
+    const bob = await keyPair("bar");
     
-    const {publicKey, privateKey} = await keyPair(password);
+    const entry = await descriptor(alice);
 
-    const message = `hello world`;
-    
-    const entry = await descriptor(privateKey);
-
-    console.log(entry);
-    
     const {data} = await openpgp.verify({
       message: await openpgp.readCleartextMessage({cleartextMessage: entry}),
-      verificationKeys: publicKey
+      verificationKeys: alice.publicKey
     });
 
     Assert.deepEqual({"hello": "world"}, JSON.parse(data));
     
-    return;
-    
-    const encrypted = await openpgp.encrypt({
-      message: await openpgp.createMessage({text: message}),
-      encryptionKeys: await openpgp.readKey({armoredKey: publicKey}),
-      signingKeys:  await openpgp.decryptKey({
-        privateKey: await openpgp.readPrivateKey({
-          armoredKey: privateKey }),
-        passphrase: password
-      })
-    });
+    const message = `hello world`;
 
-    const received = await openpgp.readMessage({
-      armoredMessage: encrypted // parse armored message
-    });
+    const email = await compose(alice, bob, message);
 
-    const {data: decrypted, signatures} = await openpgp.decrypt({
-      message: received,
-      verificationKeys: await openpgp.readKey({armoredKey: publicKey}),
-      decryptionKeys: await openpgp.decryptKey({
-        privateKey: await openpgp.readPrivateKey({
-          armoredKey: privateKey }),
-        passphrase: password
-      })
-    });
+    const received = await read(email, bob, alice);
 
-    Assert.deepEqual(message, decrypted);
+    Assert.deepEqual(message, received);
 
-    // check signature validity (signed messages only)
-    try {
-      await signatures[0].verified; // throws on invalid signature
-    } catch (e) {
-      throw new Error('Signature could not be verified: ' + e.message);
-    }
   });
 });
