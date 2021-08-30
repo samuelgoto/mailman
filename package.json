@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@openpgp/web-stream-tools": "0.0.6",
     "@stablelib/ed25519": "^1.0.2",
     "@stablelib/sha512": "^1.0.1",
     "bittorrent-dht": "^10.0.1",
@@ -20,6 +21,7 @@
     "node-forge": "^0.10.0",
     "nodemailer": "^6.6.3",
     "nodemailer-smime": "^1.1.0",
+    "openpgp": "^5.0.0-6",
     "p2pnap": "git+https://github.com/z-ninja/p2pnap.git",
     "rfc-3548-b32": "0.0.2",
     "smtp-server": "^3.9.0"
