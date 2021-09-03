@@ -38,14 +38,14 @@ async function publicKeyToEmail(publicKey) {
     Buffer.from(bytes),
     onion_service_public_key_form_id(result));
 
-  return {name: result, email: result + "@dht.onion"};
+  return {name: result, email: result + "@onion"};
 }
 
 async function keyPair(password) {
   const result = await openpgp.generateKey({
     userIDs: [{
       name: "TBD",
-      email: "tbd@tbd.example"
+    //  email: "tbd@tbd.example"
     }],
     curve: "ed25519",
     passphrase: password,
@@ -64,13 +64,14 @@ async function keyPair(password) {
   const {publicKey, privateKey} = await openpgp.reformatKey({
     privateKey: pKey,
     userIDs: [{
-      name: name,
-      email: email
+      name: email,
+      // email: email
     }],
-    passphrase: password
+    passphrase: password,
   });
 
   return {
+    armoredPublicKey: publicKey,
     publicKey: await openpgp.readKey({armoredKey: publicKey}),
     privateKey: await openpgp.decryptKey({
       privateKey: await openpgp.readPrivateKey({
@@ -132,7 +133,35 @@ async function read(message, from, to) {
   return decrypted;
 }
 
+async function parseVerifiedEmailFromPublicKey(publicKey) {
+  const descriptor = await openpgp.readKey({armoredKey: publicKey})
+
+  const email = descriptor.users[0].userID.email;
+  const [username, domain] = email.split("@");
+
+  if (domain != "onion") {
+    return false;
+  }
+  
+  const bytes = onion_service_public_key_form_id(username);
+
+  const Q = descriptor.keyPacket.publicParams.Q.subarray(1);
+  if (JSON.stringify(Array.from(Q)) != JSON.stringify(bytes.toJSON().data)) {
+    return false;
+  }
+
+  return email;
+}
+
 describe("OpenPGP", () => {
+  it("Parse email from Public Key", async () => {
+    const alice = await keyPair("foo");
+    // Asserts that the public key maps to the email address.
+    const email = await parseVerifiedEmailFromPublicKey(alice.armoredPublicKey);
+    Assert.notEqual(email, false);
+  });
+
+  
   it("Send and receive", async () => {
     const alice = await keyPair("foo");
     const bob = await keyPair("bar");
@@ -154,5 +183,11 @@ describe("OpenPGP", () => {
 
     Assert.deepEqual(message, received);
 
+  });
+
+  it("Routing", async () => {
+    const alice = await keyPair("foo");
+    const bob = await keyPair("bar");
+    
   });
 });
